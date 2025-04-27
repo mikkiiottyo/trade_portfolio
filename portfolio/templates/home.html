@@ -1,4 +1,11 @@
-{% extends "base.html" %} {% block title %} Home Page {% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Home Page{% endblock %}
+
 {% block content %}
+<h1>Stock Data for AAPL</h1>
+
+<pre>{{ data }}</pre>   <!-- Add this line to show the stock data -->
+
 <p>This is the home page</p>
 {% endblock %}
