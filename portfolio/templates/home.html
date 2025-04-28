@@ -3,7 +3,7 @@
 {% block title %}Home Page{% endblock %}
 
 {% block content %}
-<h1>Stock Data for AAPL</h1>
+<h1>Stock Data</h1>
 
 <form method="get" action="{% url 'home' %}">
     <input type="text" name="stock_symbol" placeholder="Enter stock or crypto (e.g., AAPL or Bitcoin)" value="{{ stock_symbol }}" />
