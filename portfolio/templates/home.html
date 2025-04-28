@@ -5,7 +5,48 @@
 {% block content %}
 <h1>Stock Data for AAPL</h1>
 
-<pre>{{ data }}</pre>   <!-- Add this line to show the stock data -->
+
+<canvas id="stockChart" width="400" height="200"></canvas>
+
+
+<script>
+    const labels = {{ dates|safe }};  <!-- List of dates -->
+    const prices = {{ closes|safe }};  <!-- List of closing prices -->
+
+    const ctx = document.getElementById('stockChart').getContext('2d');
+    const stockChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'AAPL Closing Price',
+                data: prices,
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.1
+            }]
+        },
+        options: {
+            scales: {
+                x: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Date'
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'Price (USD)'
+                    }
+                }
+            }
+        }
+    });
+</script>
 
 <p>This is the home page</p>
 {% endblock %}
