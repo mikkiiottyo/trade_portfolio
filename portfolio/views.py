@@ -3,14 +3,18 @@ import yfinance as yf
 import plotly.express as px
 from pycoingecko import CoinGeckoAPI
 from datetime import datetime, timezone
+import time
 
 
 def home(request):
-    stock_symbol = request.GET.get('stock_symbol', 'AAPL') 
+    stock_symbol = request.GET.get('stock_symbol', 'AAPL')  
 
     if stock_symbol.lower() == 'bitcoin':
+        current_timestamp = int(time.time())
+        one_year_ago_timestamp = current_timestamp - (365 * 24 * 60 * 60)  
+
         cg = CoinGeckoAPI()
-        data = cg.get_coin_market_chart_range_by_id(id='bitcoin', vs_currency='usd', from_timestamp=1633046400, to_timestamp=1635724800)
+        data = cg.get_coin_market_chart_range_by_id(id='bitcoin', vs_currency='usd', from_timestamp=one_year_ago_timestamp, to_timestamp=current_timestamp)
 
         dates = [d[0] for d in data['prices']]  
         closes = [d[1] for d in data['prices']] 
@@ -21,13 +25,10 @@ def home(request):
         stock = yf.Ticker(stock_symbol)
         data = stock.history(period="1mo")  
 
-       
         dates = data.index.strftime('%Y-%m-%d').tolist()
         closes = data['Close'].tolist()
 
-  
     fig = px.line(x=dates, y=closes, labels={'x': 'Date', 'y': 'Price (USD)'}, title=f"{stock_symbol} Data")
     graph_html = fig.to_html(full_html=False)
-
 
     return render(request, 'home.html', {'graph_html': graph_html, 'stock_symbol': stock_symbol})
