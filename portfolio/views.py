@@ -5,5 +5,8 @@ import yfinance as yf
 def home(request):
     stock = yf.Ticker("AAPL")
     data = stock.history(period="1mo") 
-    print(data) 
-    return render(request, 'home.html', {'data': data})
+    
+    dates = data.index.strftime('%Y-%m-%d').tolist()
+    closes = data['Close'].tolist()
+
+    return render(request, 'home.html', {'dates': dates, 'closes': closes})
