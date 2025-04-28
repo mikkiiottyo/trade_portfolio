@@ -3,17 +3,24 @@
 {% block title %}Home Page{% endblock %}
 
 {% block content %}
-<h1>Stock Data</h1>
+<h1>Stock Data for {{ stock_symbol }}</h1>
 
-<form method="get" action="{% url 'home' %}">
-    <input type="text" name="stock_symbol" placeholder="Enter stock or crypto (e.g., AAPL or Bitcoin)" value="{{ stock_symbol }}" />
-    <button type="submit">Search</button>
-  </form>
-  
-<div>
-  {{ graph_html|safe }}
-</div>
+{% if error_message %}
+    <p class="text-danger">Error: {{ error_message }}</p>
+{% endif %}
+
+{% if 'Invalid Search' not in stock_symbol %}
+    <div>
+        {{ graph_html|safe }}
+    </div>
+{% else %}
+    <p>This is mock data for a made-up stock.</p>
+{% endif %}
 
 <p>This is the home page</p>
 
+<form method="get" action="/">
+    <input type="text" name="stock_symbol" placeholder="Enter Stock or Cryptocurrency (e.g., AAPL, Bitcoin)" value="{{ stock_symbol }}">
+    <button type="submit">Search</button>
+</form>
 {% endblock %}
