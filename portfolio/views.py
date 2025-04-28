@@ -1,20 +1,31 @@
 from django.shortcuts import render
 import yfinance as yf
 import plotly.express as px
-from datetime import datetime, timezone
+import random
+from datetime import datetime, timezone, timedelta  
 import time
 from pycoingecko import CoinGeckoAPI
 
+
+def generate_fake_data(stock_symbol):
+    dates = [datetime.today().strftime('%Y-%m-%d')] 
+    for i in range(1, 30):
+        dates.append((datetime.today() - timedelta(days=i)).strftime('%Y-%m-%d'))
+
+    closes = [random.uniform(100, 200) for _ in range(30)] 
+
+    return dates, closes
+
 def home(request):
-    stock_symbol = request.GET.get('stock_symbol', 'AAPL').strip().lower()  
+    stock_symbol = request.GET.get('stock_symbol', 'AAPL').strip().lower() 
 
     cg = CoinGeckoAPI()
 
-    if stock_symbol not in ['aapl', 'msft', 'goog']: 
+    if stock_symbol not in ['aapl', 'msft', 'goog']:  
         try:
             if stock_symbol:  
                 coin_data = cg.get_coins_list()  
-                coin_ids = [coin['id'].lower() for coin in coin_data]  
+                coin_ids = [coin['id'].lower() for coin in coin_data] 
 
                 if stock_symbol in coin_ids:  
                     current_timestamp = int(time.time())
@@ -25,12 +36,13 @@ def home(request):
                     )
                     
                     dates = [d[0] for d in data['prices']]  
-                    closes = [d[1] for d in data['prices']]  
+                    closes = [d[1] for d in data['prices']] 
 
                     dates = [datetime.fromtimestamp(d / 1000, tz=timezone.utc).strftime('%Y-%m-%d') for d in dates]
                     stock_symbol = stock_symbol.capitalize() 
                 else:
-                    raise ValueError("Cryptocurrency not found!")
+                    dates, closes = generate_fake_data(stock_symbol)
+                    stock_symbol = stock_symbol.capitalize()  
             else:
                 raise ValueError("Please enter a valid cryptocurrency or stock ticker.")
         except Exception as e:
@@ -38,7 +50,7 @@ def home(request):
             dates, closes, stock_symbol = [], [], "Invalid Search"
     else:
         try:
-            stock = yf.Ticker(stock_symbol.upper())  
+            stock = yf.Ticker(stock_symbol.upper()) 
             data = stock.history(period="1mo") 
 
             dates = data.index.strftime('%Y-%m-%d').tolist()  
