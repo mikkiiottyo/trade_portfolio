@@ -5,7 +5,11 @@
 {% block content %}
 <h1>Stock Data for AAPL</h1>
 
-<!-- Render the Plotly graph -->
+<form method="get" action="{% url 'home' %}">
+    <input type="text" name="stock_symbol" placeholder="Enter stock ticker (e.g., AAPL)" value="{{ stock_symbol }}" />
+    <button type="submit">Search</button>
+  </form>
+  
 <div>
   {{ graph_html|safe }}
 </div>
