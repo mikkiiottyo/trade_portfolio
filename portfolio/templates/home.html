@@ -31,8 +31,29 @@
     <form method="post" action="">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit">Submit Trade</button>
+
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                Trade Options
+            </button>
+            <ul class="dropdown-menu">
+                <li>
+                    <button type="submit" name="action" value="BUY" class="dropdown-item">Buy</button>
+                </li>
+                <li>
+                    <button type="submit" name="action" value="SELL" class="dropdown-item">Sell</button>
+                </li>
+                <li>
+                    <button type="submit" name="action" value="TRADE" class="dropdown-item">Trade</button>
+                </li>
+            </ul>
+        </div>
     </form>
+
+    {% if error %}
+        <div class="alert alert-danger mt-3">{{ error }}</div>
+    {% endif %}
+
 {% else %}
     <p><a href="{% url 'login' %}">Log in</a> to trade stocks.</p>
 {% endif %}
