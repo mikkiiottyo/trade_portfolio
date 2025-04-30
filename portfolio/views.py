@@ -6,8 +6,12 @@ from datetime import datetime, timezone, timedelta
 import time
 from pycoingecko import CoinGeckoAPI
 from django.contrib.auth.forms import UserCreationForm
+from .forms import TradeForm   
 from django.contrib.auth import login
-from .models import UserBalance 
+from .models import UserBalance, Portfolio, Transaction 
+from django.contrib.auth.decorators import login_required
+
+
 
 
 def signup(request):
@@ -24,6 +28,8 @@ def signup(request):
     else:
         form = UserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
+
+
 
 
 def generate_fake_data(stock_symbol):
