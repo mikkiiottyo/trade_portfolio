@@ -20,8 +20,6 @@ def signup(request):
         if form.is_valid():
             user = form.save()
             login(request, user) 
-
-            
             UserBalance.objects.create(user=user, balance=10000.00)
 
             return redirect('home') 
@@ -30,7 +28,77 @@ def signup(request):
     return render(request, 'registration/signup.html', {'form': form})
 
 
+@login_required
+def trade_view(request):
+    if request.method == 'POST':
+        form = TradeForm(request.POST)
+        if form.is_valid():
+            action = form.cleaned_data['action']
+            symbol = form.cleaned_data['symbol'].upper()
+            shares = form.cleaned_data['shares']
 
+            stock = yf.Ticker(symbol)
+            price = stock.history(period="1d")['Close'].iloc[-1]
+            total_cost = price * shares
+            user_balance = UserBalance.objects.get(user=request.user)
+
+            if action == 'BUY':
+                if user_balance.balance >= total_cost:
+                    user_balance.balance -= total_cost
+                    user_balance.save()
+                    portfolio_item, created = Portfolio.objects.get_or_create(
+                        user=request.user, stock_symbol=symbol,
+                        defaults={'shares': 0, 'average_price': 0}
+                    )
+                    if created:
+                        portfolio_item.shares = shares
+                        portfolio_item.average_price = price
+                    else:
+                        total_shares = portfolio_item.shares + shares
+                        portfolio_item.average_price = ((portfolio_item.shares * portfolio_item.average_price) + (shares * price)) / total_shares
+                        portfolio_item.shares = total_shares
+
+                    portfolio_item.save()
+                    Transaction.objects.create(
+                        user=request.user,
+                        stock_symbol=symbol,
+                        shares=shares,
+                        price_per_share=price,
+                        action='BUY'
+                    )
+
+                else:
+                    return render(request, 'trade.html', {'form': form, 'error': 'Not enough balance to buy.'})
+
+            elif action == 'SELL':
+                try:
+                    portfolio_item = Portfolio.objects.get(user=request.user, stock_symbol=symbol)
+                    if portfolio_item.shares >= shares:
+                        portfolio_item.shares -= shares
+                        user_balance.balance += total_cost
+                        user_balance.save()
+
+                        if portfolio_item.shares == 0:
+                            portfolio_item.delete()
+                        else:
+                            portfolio_item.save()
+                        Transaction.objects.create(
+                            user=request.user,
+                            stock_symbol=symbol,
+                            shares=shares,
+                            price_per_share=price,
+                            action='SELL'
+                        )
+                    else:
+                        return render(request, 'trade.html', {'form': form, 'error': 'Not enough shares to sell.'})
+                except Portfolio.DoesNotExist:
+                    return render(request, 'trade.html', {'form': form, 'error': 'You do not own this stock.'})
+
+            return redirect('home')
+    else:
+        form = TradeForm()
+
+    return render(request, 'trade.html', {'form': form})
 
 def generate_fake_data(stock_symbol):
     dates = [datetime.today().strftime('%Y-%m-%d')] 
