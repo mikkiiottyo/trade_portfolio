@@ -22,4 +22,19 @@
     <input type="text" name="stock_symbol" placeholder="Enter Stock or Cryptocurrency (e.g., AAPL, Bitcoin)" value="{{ stock_symbol }}">
     <button type="submit">Search</button>
 </form>
+
+<hr>
+
+{% if user.is_authenticated %}
+    <h2>Trade {{ stock_symbol }}</h2>
+
+    <form method="post" action="">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Submit Trade</button>
+    </form>
+{% else %}
+    <p><a href="{% url 'login' %}">Log in</a> to trade stocks.</p>
+{% endif %}
+
 {% endblock %}
