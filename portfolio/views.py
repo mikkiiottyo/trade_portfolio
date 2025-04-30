@@ -33,7 +33,7 @@ def trade_view(request):
     if request.method == 'POST':
         form = TradeForm(request.POST)
         if form.is_valid():
-            action = form.cleaned_data['action']
+            action = request.POST.get('action')
             symbol = form.cleaned_data['symbol'].upper()
             shares = form.cleaned_data['shares']
 
