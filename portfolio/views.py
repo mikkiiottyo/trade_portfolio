@@ -160,9 +160,16 @@ def home(request):
     fig = px.line(x=dates, y=closes, labels={'x': 'Date', 'y': 'Price (USD)'}, title=f"{stock_symbol} Data")
     graph_html = fig.to_html(full_html=False)
 
+    user_balance = None
+    if request.user.is_authenticated:
+        try:
+            user_balance = UserBalance.objects.get(user=request.user).balance
+        except UserBalance.DoesNotExist:
+            user_balance = 0
+
     return render(request, 'home.html', {
         'graph_html': graph_html,
         'stock_symbol': stock_symbol,
-        'error_message': error_message
-        if 'error_message' in locals() else None
-        })
+        'error_message': error_message if 'error_message' in locals() else None,
+        'user_balance': user_balance,
+    })
