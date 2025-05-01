@@ -9,7 +9,7 @@
     <p class="text-danger">Error: {{ error_message }}</p>
 {% endif %}
 
-{% if 'Invalid Search' not in stock_symbol %}
+{% if stock_symbol and 'Invalid Search' not in stock_symbol %}
     <div>
         {{ graph_html|safe }}
     </div>
@@ -31,7 +31,15 @@
 
     <form method="post" action="">
         {% csrf_token %}
-        {{ form.as_p }}
+        {{ form.symbol.label_tag }} {{ form.symbol }}
+
+        <div class="mb-3">
+            <label for="sharesInput" class="form-label">Number of Shares</label>
+            <input type="number" name="shares" id="sharesInput" class="form-control" min="1" required>
+        </div>
+
+        <input type="hidden" name="action" id="actionInput">
+
 
         <div class="btn-group">
             <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
@@ -39,22 +47,34 @@
             </button>
             <ul class="dropdown-menu">
                 <li>
-                    <button type="submit" name="action" value="BUY" class="dropdown-item">Buy</button>
+                    <a class="dropdown-item trade-option" href="#" data-action="BUY">Buy</a>
                 </li>
                 <li>
-                    <button type="submit" name="action" value="SELL" class="dropdown-item">Sell</button>
+                    <a class="dropdown-item trade-option" href="#" data-action="SELL">Sell</a>
                 </li>
                 <li>
-                    <button type="submit" name="action" value="TRADE" class="dropdown-item">Trade</button>
+                    <a class="dropdown-item trade-option" href="#" data-action="TRADE">Trade</a>
                 </li>
             </ul>
         </div>
+        <button type="submit" class="btn btn-success mt-2">Submit</button>
     </form>
 
     {% if error %}
         <div class="alert alert-danger mt-3">{{ error }}</div>
     {% endif %}
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.trade-option').forEach(item => {
+                item.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const action = this.getAttribute('data-action');
+                    document.getElementById('actionInput').value = action;
+                });
+            });
+        });
+    </script>
 {% else %}
     <p><a href="{% url 'login' %}">Log in</a> to trade stocks.</p>
 {% endif %}
