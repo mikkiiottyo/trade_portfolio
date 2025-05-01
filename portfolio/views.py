@@ -160,4 +160,9 @@ def home(request):
     fig = px.line(x=dates, y=closes, labels={'x': 'Date', 'y': 'Price (USD)'}, title=f"{stock_symbol} Data")
     graph_html = fig.to_html(full_html=False)
 
-    return render(request, 'home.html', {'graph_html': graph_html, 'stock_symbol': stock_symbol, 'error_message': error_message if 'error_message' in locals() else None})
+    return render(request, 'home.html', {
+        'graph_html': graph_html,
+        'stock_symbol': stock_symbol,
+        'error_message': error_message
+        if 'error_message' in locals() else None
+        })
