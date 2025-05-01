@@ -26,6 +26,7 @@
 <hr>
 
 {% if user.is_authenticated %}
+<p><strong>Your Balance:</strong> ${{ user_balance }}</p>
     <h2>Trade {{ stock_symbol }}</h2>
 
     <form method="post" action="">
