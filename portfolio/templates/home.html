@@ -31,7 +31,7 @@
 
     <form method="post" action="">
         {% csrf_token %}
-        {{ form.symbol.label_tag }} {{ form.symbol }}
+        <input type="hidden" name="symbol" value="{{ stock_symbol }}">
 
         <div class="mb-3">
             <label for="sharesInput" class="form-label">Number of Shares</label>
