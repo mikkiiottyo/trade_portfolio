@@ -57,6 +57,7 @@
                 </li>
             </ul>
         </div>
+        <p id="selectedAction" class="mt-2"><strong>Selected Action:</strong> None</p>
         <button type="submit" class="btn btn-success mt-2">Submit</button>
     </form>
 
@@ -68,12 +69,14 @@
         document.addEventListener('DOMContentLoaded', function () {
             const tradeOptions = document.querySelectorAll('.trade-option');
             const actionInput = document.getElementById('actionInput');
+            const selectedActionDisplay = document.getElementById('selectedAction');
     
             tradeOptions.forEach(item => {
                 item.addEventListener('click', function (e) {
                     e.preventDefault();
                     const action = this.getAttribute('data-action');
                     actionInput.value = action;
+                    selectedActionDisplay.textContent = `Selected Action: ${action}`;    
                 });
             });
     
