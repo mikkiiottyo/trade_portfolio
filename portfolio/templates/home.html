@@ -32,7 +32,7 @@
 <p><strong>Your Balance:</strong> ${{ user_balance }}</p>
     <h2>Trade {{ stock_symbol }}</h2>
 
-    <form method="post" action="{% url 'trade_view' %}">
+    <form method="post" action="">
         {% csrf_token %}
         <input type="hidden" name="symbol" value="{{ stock_symbol }}">
 
