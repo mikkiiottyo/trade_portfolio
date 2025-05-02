@@ -24,7 +24,7 @@ class Transaction(models.Model):
     stock_symbol = models.CharField(max_length=10)
     shares = models.DecimalField(max_digits=10, decimal_places=2)
     price_per_share = models.DecimalField(max_digits=10, decimal_places=2)
-    action = models.CharField(max_length=4, choices=[('BUY', 'Buy'), ('SELL', 'Sell')])
+    action = models.CharField(max_length=5, choices=[('BUY', 'Buy'), ('SELL', 'Sell'), ('TRADE', 'Trade')])
     date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
