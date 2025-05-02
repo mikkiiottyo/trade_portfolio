@@ -4,6 +4,7 @@ class TradeForm(forms.Form):
     ACTION_CHOICES = [
         ('BUY', 'Buy'),
         ('SELL', 'Sell'),
+        ('TRADE', 'Trade'),
     ]
     action = forms.ChoiceField(choices=ACTION_CHOICES)
     symbol = forms.CharField(label='Stock Symbol', max_length=10)
