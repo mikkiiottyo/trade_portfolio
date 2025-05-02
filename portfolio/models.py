@@ -9,8 +9,11 @@ class Portfolio(models.Model):
     shares = models.DecimalField(max_digits=10, decimal_places=2)
     average_price = models.DecimalField(max_digits=10, decimal_places=2)
 
-    def __str__(self):
-        return f"{self.user.username} owns {self.shares} shares of {self.stock_symbol}"
+class Meta:
+        unique_together = ('user', 'stock_symbol') 
+
+def __str__(self):
+    return f"{self.user.username} owns {self.shares} shares of {self.stock_symbol}"
 
 class UserBalance(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
