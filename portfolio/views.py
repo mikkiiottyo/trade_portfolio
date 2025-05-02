@@ -37,12 +37,20 @@ def trade_view(request):
             action = request.POST.get('action')
             symbol = form.cleaned_data['symbol'].upper()
             shares = form.cleaned_data['shares']
+            cache_key = f"stock_price_{symbol}"
+            price = cache.get(cache_key)
 
-            stock = yf.Ticker(symbol)
-            price = stock.history(period="1d")['Close'].iloc[-1]
+            if price is None:
+                try:
+                    stock = yf.Ticker(symbol)
+                    price = stock.history(period="1d")['Close'].iloc[-1]
+                    cache.set(cache_key, price, timeout=60) 
+                except Exception as e:
+                    return render(request, 'trade.html', {'form': form, 'error': 'Could not retrieve stock price. Try again soon.'})
+
             total_cost = price * shares
             user_balance = UserBalance.objects.get(user=request.user)
-
+            
             if action == 'BUY':
                 if user_balance.balance >= total_cost:
                     user_balance.balance -= total_cost
