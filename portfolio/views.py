@@ -31,6 +31,7 @@ def signup(request):
 
 @login_required
 def trade_view(request):
+    
     if request.method == 'POST':
         form = TradeForm(request.POST)
         if form.is_valid():
@@ -108,6 +109,13 @@ def trade_view(request):
         form = TradeForm()
 
     return render(request, 'trade.html', {'form': form})
+
+@login_required
+def trade_view(request):
+    transactions = Transaction.objects.filter(user=request.user).order_by('-id')
+    return render(request, 'trade.html', {
+        'transactions': transactions
+    })
 
 def generate_fake_data(stock_symbol):
     dates = [datetime.today().strftime('%Y-%m-%d')] 
