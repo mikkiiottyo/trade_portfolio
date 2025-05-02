@@ -47,7 +47,7 @@ def trade_view(request):
                     price = stock.history(period="1d")['Close'].iloc[-1]
                     cache.set(cache_key, price, timeout=60) 
                 except Exception as e:
-                    return render(request, 'trade.html', {'form': form, 'error': 'Could not retrieve stock price. Try again soon.'})
+                    return render(request, 'home.html', {'form': form, 'error': 'Could not retrieve stock price. Try again soon.'})
 
             total_cost = price * shares
             user_balance = UserBalance.objects.get(user=request.user)
@@ -78,7 +78,7 @@ def trade_view(request):
                     )
 
                 else:
-                    return render(request, 'trade.html', {'form': form, 'error': 'Not enough balance to buy.'})
+                    return render(request, 'home.html', {'form': form, 'error': 'Not enough balance to buy.'})
 
             elif action == 'SELL':
                 try:
@@ -100,15 +100,15 @@ def trade_view(request):
                             action='SELL'
                         )
                     else:
-                        return render(request, 'trade.html', {'form': form, 'error': 'Not enough shares to sell.'})
+                        return render(request, 'home.html', {'form': form, 'error': 'Not enough shares to sell.'})
                 except Portfolio.DoesNotExist:
-                    return render(request, 'trade.html', {'form': form, 'error': 'You do not own this stock.'})
+                    return render(request, 'home.html', {'form': form, 'error': 'You do not own this stock.'})
 
             return redirect('home')
     else:
         form = TradeForm()
 
-    return render(request, 'trade.html', {'form': form})
+    return render(request, 'home.html', {'form': form})
 
 @login_required
 def trade_view(request):
