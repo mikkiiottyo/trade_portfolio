@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Your Trade History</h2>
+
+{% if transactions %}
+<table>
+    <tr>
+        <th>Date</th>
+        <th>Action</th>
+        <th>Symbol</th>
+        <th>Shares</th>
+        <th>Price Per Share</th>
+    </tr>
+    {% for t in transactions %}
+    <tr>
+        <td>{{ t.timestamp }}</td>
+        <td>{{ t.action }}</td>
+        <td>{{ t.stock_symbol }}</td>
+        <td>{{ t.shares }}</td>
+        <td>${{ t.price_per_share }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>No trades yet.</p>
+{% endif %}
+
+{% endblock %}
