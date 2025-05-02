@@ -1,19 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-
-# Create your models here.
 class Portfolio(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     stock_symbol = models.CharField(max_length=10)
     shares = models.DecimalField(max_digits=10, decimal_places=2)
     average_price = models.DecimalField(max_digits=10, decimal_places=2)
 
-class Meta:
-        unique_together = ('user', 'stock_symbol') 
+    class Meta:
+        unique_together = ('user', 'stock_symbol')
 
-def __str__(self):
-    return f"{self.user.username} owns {self.shares} shares of {self.stock_symbol}"
+    def __str__(self):
+        return f"{self.user.username} owns {self.shares} shares of {self.stock_symbol}"
 
 class UserBalance(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -21,7 +19,7 @@ class UserBalance(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - Balance: ${self.balance}"
-    
+
 class Transaction(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     stock_symbol = models.CharField(max_length=10)
