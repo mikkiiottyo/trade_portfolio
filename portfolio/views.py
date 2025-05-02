@@ -4,6 +4,7 @@ import plotly.express as px
 import random
 from datetime import datetime, timezone, timedelta  
 import time
+from django.core.cache import cache
 from pycoingecko import CoinGeckoAPI
 from django.contrib.auth.forms import UserCreationForm
 from .forms import TradeForm   
