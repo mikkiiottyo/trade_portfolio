@@ -99,7 +99,6 @@ def home(request):
                 'gain_loss_percent': round(gain_loss_percent, 2)
             })
         except ValueError as e:
-            # Log the error for missing price and continue
             print(f"Error fetching price for {item.stock_symbol}: {e}")
             portfolio_data.append({
                 'symbol': item.stock_symbol,
@@ -138,6 +137,11 @@ def home(request):
                 'portfolio_data': portfolio_data,
             })
 
+    try:
+        price = get_stock_price(symbol)
+        print(f"Price for {symbol}: {price}")  # Debugging line
+    except ValueError as e:
+        error_message = str(e)
     return render(request, 'home.html', {
         'graph_html': graph_html,
         'stock_symbol': stock_symbol,
