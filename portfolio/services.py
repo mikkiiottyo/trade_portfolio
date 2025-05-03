@@ -3,6 +3,7 @@ import yfinance as yf
 from django.core.cache import cache
 from .models import UserBalance, Portfolio, Transaction
 from .helpers import is_crypto
+from decimal import Decimal
 
 def get_stock_price(symbol):
     symbol = symbol.lower()
@@ -45,6 +46,7 @@ def get_stock_price(symbol):
 
 
 def handle_buy(user, symbol, shares, price):
+    price = Decimal(str(price)) 
     total_cost = price * shares
     user_balance = UserBalance.objects.get(user=user)
 
@@ -82,6 +84,7 @@ def handle_buy(user, symbol, shares, price):
 
 def handle_sell(user, symbol, shares, price):
     try:
+        price = Decimal(str(price))
         portfolio_item = Portfolio.objects.get(user=user, stock_symbol=symbol)
         if portfolio_item.shares >= shares:
             portfolio_item.shares -= shares
