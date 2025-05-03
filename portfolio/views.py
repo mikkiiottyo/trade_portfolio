@@ -92,22 +92,24 @@ def home(request):
         action = request.POST.get('action')
         symbol = request.POST.get('symbol').upper()
         shares = int(request.POST.get('shares'))
-        price = get_stock_price(symbol)  
+        price = get_stock_price(symbol)
 
-        if action == 'BUY':
-            handle_buy(request, symbol, shares, price)
-        elif action == 'SELL':
-            handle_sell(request, symbol, shares, price)
+        success = False
+    if action == 'BUY':
+        success = handle_buy(request, symbol, shares, price)
+    elif action == 'SELL':
+        success = handle_sell(request, symbol, shares, price)
 
-        return redirect('home')  
+    if not success:
+        error_message = "Transaction failed. Check your balance or available shares."
+        return render(request, 'home.html', {
+            'graph_html': graph_html,
+            'stock_symbol': stock_symbol,
+            'error_message': error_message,
+            'user_balance': user_balance,
+        })
 
-    return render(request, 'home.html', {
-        'graph_html': graph_html,
-        'stock_symbol': stock_symbol,
-        'error_message': error_message if 'error_message' in locals() else None,
-        'user_balance': user_balance,
-    })
-
+    return redirect('home')
 @login_required
 def trade_history(request):
     transactions = Transaction.objects.filter(user=request.user).order_by('-id')
