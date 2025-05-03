@@ -6,6 +6,7 @@ from .forms import TradeForm
 from .models import UserBalance, Portfolio, Transaction
 from .helpers import generate_fake_data, get_coin_ids, is_crypto
 from .services import get_stock_price, handle_buy, handle_sell
+from pycoingecko import CoinGeckoAPI
 import yfinance as yf
 import plotly.express as px
 from datetime import datetime, timezone, timedelta
