@@ -64,8 +64,9 @@ def home(request):
             stock_symbol = stock_symbol.upper()
         except Exception as e:
             error_message = str(e)
-            dates, closes, stock_symbol = [], [], "Invalid Search"
-
+            dates, closes, stock_symbol = generate_fake_data(stock_symbol)
+            stock_symbol = stock_symbol.capitalize()
+            
     if not dates or not closes:
         return render(request, 'home.html', {
             'error_message': "No data available for the given symbol."
