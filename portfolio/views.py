@@ -28,14 +28,13 @@ def signup(request):
 
 @login_required
 def home(request):
-  
     stock_symbol = request.GET.get('stock_symbol', 'AAPL').strip()
     
     if not isinstance(stock_symbol, str):
         stock_symbol = 'AAPL'  
 
     if not stock_symbol.isalpha():
-        stock_symbol = 'AAPL'  
+        stock_symbol = 'AAPL' 
 
     error_message = None
     dates, closes = [], []
@@ -44,7 +43,7 @@ def home(request):
     if stock_symbol.lower() not in valid_stocks:
         try:
             coin_ids = get_coin_ids()
-            if stock_symbol.lower() in coin_ids:
+            if stock_symbol.lower() in coin_ids: 
                 current_timestamp = int(time.time())
                 one_year_ago_timestamp = current_timestamp - (365 * 24 * 60 * 60)
 
@@ -56,15 +55,15 @@ def home(request):
 
                 dates = [datetime.fromtimestamp(d[0] / 1000, tz=timezone.utc).strftime('%Y-%m-%d') for d in data['prices']]
                 closes = [d[1] for d in data['prices']]
-                stock_symbol = stock_symbol.capitalize()
-            else:  
+                stock_symbol = stock_symbol.lower().capitalize()  
+            else: 
                 dates, closes, stock_symbol = generate_fake_data(stock_symbol)
-                stock_symbol = stock_symbol.capitalize()
+                stock_symbol = str(stock_symbol).capitalize()  
         except Exception as e:
             error_message = str(e)
             dates, closes, stock_symbol = generate_fake_data(stock_symbol)
-            stock_symbol = stock_symbol.capitalize()
-    else:  
+            stock_symbol = str(stock_symbol).capitalize() 
+    else: 
         try:
             stock = yf.Ticker(stock_symbol.upper())
             data = stock.history(period="1mo")
@@ -76,7 +75,7 @@ def home(request):
         except Exception as e:
             error_message = str(e)
             dates, closes, stock_symbol = generate_fake_data(stock_symbol)
-            stock_symbol = stock_symbol.capitalize()
+            stock_symbol = str(stock_symbol).capitalize() 
 
     if not dates or not closes:
         return render(request, 'home.html', {
@@ -158,7 +157,6 @@ def home(request):
         'user_balance': user_balance,
         'portfolio_data': portfolio_data,
     })
-
 
 @login_required
 def trade_history(request):
