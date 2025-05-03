@@ -30,6 +30,42 @@
 
 {% if user.is_authenticated %}
 <p><strong>Your Balance:</strong> ${{ user_balance }}</p>
+<h2>Your Portfolio</h2>
+
+{% if portfolio_data %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Symbol</th>
+            <th>Shares</th>
+            <th>Avg Buy Price</th>
+            <th>Current Price</th>
+            <th>Total Value</th>
+            <th>Gain/Loss ($)</th>
+            <th>Gain/Loss (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in portfolio_data %}
+        <tr>
+            <td>{{ item.symbol }}</td>
+            <td>{{ item.shares }}</td>
+            <td>${{ item.avg_price }}</td>
+            <td>${{ item.current_price }}</td>
+            <td>${{ item.total_value }}</td>
+            <td style="color: {% if item.gain_loss >= 0 %}green{% else %}red{% endif %};">
+                ${{ item.gain_loss }}
+            </td>
+            <td style="color: {% if item.gain_loss_percent >= 0 %}green{% else %}red{% endif %};">
+                {{ item.gain_loss_percent }}%
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>You currently have no stocks in your portfolio.</p>
+{% endif %}
     <h2>Trade {{ stock_symbol }}</h2>
 
     <form method="post" action="">
