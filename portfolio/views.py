@@ -11,6 +11,7 @@ import yfinance as yf
 import plotly.express as px
 from datetime import datetime, timezone, timedelta
 import time
+from decimal import Decimal
 
 def signup(request):
     if request.method == 'POST':
@@ -23,6 +24,7 @@ def signup(request):
     else:
         form = UserCreationForm()
     return render(request, 'registration/signup.html', {'form': form})
+
 
 @login_required
 def home(request):
@@ -72,18 +74,18 @@ def home(request):
     fig = px.line(x=dates, y=closes, labels={'x': 'Date', 'y': 'Price (USD)'}, title=f"{stock_symbol} Data")
     graph_html = fig.to_html(full_html=False)
 
-    user_balance = 0
+    # Get user balance
     try:
         user_balance = UserBalance.objects.get(user=request.user).balance
     except UserBalance.DoesNotExist:
-        pass
+        user_balance = 0
 
+    # Build portfolio
     portfolio = Portfolio.objects.filter(user=request.user)
-
     portfolio_data = []
     for item in portfolio:
         try:
-            current_price = get_stock_price(item.stock_symbol)
+            current_price = Decimal(str(get_stock_price(item.stock_symbol)))
             total_value = item.shares * current_price
             total_cost = item.shares * item.average_price
             gain_loss = total_value - total_cost
@@ -99,49 +101,44 @@ def home(request):
                 'gain_loss_percent': round(gain_loss_percent, 2)
             })
         except ValueError as e:
-            print(f"Error fetching price for {item.stock_symbol}: {e}")
             portfolio_data.append({
                 'symbol': item.stock_symbol,
                 'error': str(e)
             })
 
+    # Handle buy/sell transactions
     if request.method == 'POST':
         action = request.POST.get('action')
-        symbol = request.POST.get('symbol').upper()
-        shares = int(request.POST.get('shares'))
-        try:
-            price = get_stock_price(symbol)
-        except ValueError as e:
-            error_message = str(e)
-            return render(request, 'home.html', {
-                'graph_html': graph_html,
-                'stock_symbol': stock_symbol,
-                'error_message': error_message,
-                'user_balance': user_balance,
-                'portfolio_data': portfolio_data,
-            })
+        symbol = request.POST.get('symbol', '').upper()
+        shares = request.POST.get('shares')
 
-        success = False
-        if action == 'BUY':
-            success = handle_buy(request.user, symbol, shares, price)
-        elif action == 'SELL':
-            success = handle_sell(request.user, symbol, shares, price)
+        if not symbol or not shares or action not in ['BUY', 'SELL']:
+            error_message = "Invalid input data. Ensure all fields are filled correctly."
+        else:
+            try:
+                shares = int(shares)
+                price = get_stock_price(symbol)
+                success = False
 
-        if not success:
-            error_message = "Transaction failed. Check your balance or available shares."
-            return render(request, 'home.html', {
-                'graph_html': graph_html,
-                'stock_symbol': stock_symbol,
-                'error_message': error_message,
-                'user_balance': user_balance,
-                'portfolio_data': portfolio_data,
-            })
+                if action == 'BUY':
+                    success = handle_buy(request.user, symbol, shares, price)
+                elif action == 'SELL':
+                    success = handle_sell(request.user, symbol, shares, price)
 
-    try:
-        price = get_stock_price(symbol)
-        print(f"Price for {symbol}: {price}")  # Debugging line
-    except ValueError as e:
-        error_message = str(e)
+                if not success:
+                    error_message = "Transaction failed. Check your balance or available shares."
+            except Exception as e:
+                error_message = str(e)
+
+        return render(request, 'home.html', {
+            'graph_html': graph_html,
+            'stock_symbol': stock_symbol,
+            'error_message': error_message,
+            'user_balance': user_balance,
+            'portfolio_data': portfolio_data,
+        })
+
+    # Final render
     return render(request, 'home.html', {
         'graph_html': graph_html,
         'stock_symbol': stock_symbol,
@@ -149,6 +146,8 @@ def home(request):
         'user_balance': user_balance,
         'portfolio_data': portfolio_data,
     })
+
+
 @login_required
 def trade_history(request):
     transactions = Transaction.objects.filter(user=request.user).order_by('-id')
