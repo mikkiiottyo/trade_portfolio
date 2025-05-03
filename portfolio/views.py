@@ -30,6 +30,7 @@ def signup(request):
 def home(request):
     stock_symbol = request.GET.get('stock_symbol', 'AAPL').strip().lower()
     error_message = None
+    dates, closes, stock_symbol = [], [], None
 
     if stock_symbol not in ['aapl', 'msft', 'goog']:
         try:
@@ -48,7 +49,7 @@ def home(request):
                 closes = [d[1] for d in data['prices']]
                 stock_symbol = stock_symbol.capitalize()
             else:
-                dates, closes = generate_fake_data(stock_symbol)
+                dates, closes, stock_symbol = generate_fake_data(stock_symbol)
                 stock_symbol = stock_symbol.capitalize()
         except Exception as e:
             error_message = str(e)
@@ -66,7 +67,7 @@ def home(request):
             error_message = str(e)
             dates, closes, stock_symbol = generate_fake_data(stock_symbol)
             stock_symbol = stock_symbol.capitalize()
-            
+
     if not dates or not closes:
         return render(request, 'home.html', {
             'error_message': "No data available for the given symbol."
@@ -75,14 +76,14 @@ def home(request):
     fig = px.line(x=dates, y=closes, labels={'x': 'Date', 'y': 'Price (USD)'}, title=f"{stock_symbol} Data")
     graph_html = fig.to_html(full_html=False)
 
-    # Get user balance
+    user_balance = 0
     try:
         user_balance = UserBalance.objects.get(user=request.user).balance
     except UserBalance.DoesNotExist:
-        user_balance = 0
+        pass
 
-    # Build portfolio
     portfolio = Portfolio.objects.filter(user=request.user)
+
     portfolio_data = []
     for item in portfolio:
         try:
@@ -102,44 +103,44 @@ def home(request):
                 'gain_loss_percent': round(gain_loss_percent, 2)
             })
         except ValueError as e:
+            print(f"Error fetching price for {item.stock_symbol}: {e}")
             portfolio_data.append({
                 'symbol': item.stock_symbol,
                 'error': str(e)
             })
 
-    # Handle buy/sell transactions
     if request.method == 'POST':
         action = request.POST.get('action')
-        symbol = request.POST.get('symbol', '').upper()
-        shares = request.POST.get('shares')
+        symbol = request.POST.get('symbol').upper()
+        shares = int(request.POST.get('shares'))
+        try:
+            price = get_stock_price(symbol)
+        except ValueError as e:
+            error_message = str(e)
+            return render(request, 'home.html', {
+                'graph_html': graph_html,
+                'stock_symbol': stock_symbol,
+                'error_message': error_message,
+                'user_balance': user_balance,
+                'portfolio_data': portfolio_data,
+            })
 
-        if not symbol or not shares or action not in ['BUY', 'SELL']:
-            error_message = "Invalid input data. Ensure all fields are filled correctly."
-        else:
-            try:
-                shares = int(shares)
-                price = get_stock_price(symbol)
-                success = False
+        success = False
+        if action == 'BUY':
+            success = handle_buy(request.user, symbol, shares, price)
+        elif action == 'SELL':
+            success = handle_sell(request.user, symbol, shares, price)
 
-                if action == 'BUY':
-                    success = handle_buy(request.user, symbol, shares, price)
-                elif action == 'SELL':
-                    success = handle_sell(request.user, symbol, shares, price)
+        if not success:
+            error_message = "Transaction failed. Check your balance or available shares."
+            return render(request, 'home.html', {
+                'graph_html': graph_html,
+                'stock_symbol': stock_symbol,
+                'error_message': error_message,
+                'user_balance': user_balance,
+                'portfolio_data': portfolio_data,
+            })
 
-                if not success:
-                    error_message = "Transaction failed. Check your balance or available shares."
-            except Exception as e:
-                error_message = str(e)
-
-        return render(request, 'home.html', {
-            'graph_html': graph_html,
-            'stock_symbol': stock_symbol,
-            'error_message': error_message,
-            'user_balance': user_balance,
-            'portfolio_data': portfolio_data,
-        })
-
-    # Final render
     return render(request, 'home.html', {
         'graph_html': graph_html,
         'stock_symbol': stock_symbol,
