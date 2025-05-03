@@ -88,6 +88,26 @@ def home(request):
         except UserBalance.DoesNotExist:
             user_balance = 0
 
+    portfolio = Portfolio.objects.filter(user=request.user)
+
+    portfolio_data = []
+    for item in portfolio:
+        current_price = get_stock_price(item.stock_symbol)
+        total_value = item.shares * current_price
+        total_cost = item.shares * item.average_price
+        gain_loss = total_value - total_cost
+        gain_loss_percent = (gain_loss / total_cost * 100) if total_cost > 0 else 0
+
+        portfolio_data.append({
+            'symbol': item.stock_symbol,
+            'shares': item.shares,
+            'avg_price': item.average_price,
+            'current_price': round(current_price, 2),
+            'total_value': round(total_value, 2),
+            'gain_loss': round(gain_loss, 2),
+            'gain_loss_percent': round(gain_loss_percent, 2)
+        })
+
     if request.method == 'POST':
         action = request.POST.get('action')
         symbol = request.POST.get('symbol').upper()
@@ -95,21 +115,28 @@ def home(request):
         price = get_stock_price(symbol)
 
         success = False
-    if action == 'BUY':
-        success = handle_buy(request, symbol, shares, price)
-    elif action == 'SELL':
-        success = handle_sell(request, symbol, shares, price)
+        if action == 'BUY':
+            success = handle_buy(request, symbol, shares, price)
+        elif action == 'SELL':
+            success = handle_sell(request, symbol, shares, price)
 
-    if not success:
-        error_message = "Transaction failed. Check your balance or available shares."
-        return render(request, 'home.html', {
-            'graph_html': graph_html,
-            'stock_symbol': stock_symbol,
-            'error_message': error_message,
-            'user_balance': user_balance,
-        })
+        if not success:
+            error_message = "Transaction failed. Check your balance or available shares."
+            return render(request, 'home.html', {
+                'graph_html': graph_html,
+                'stock_symbol': stock_symbol,
+                'error_message': error_message,
+                'user_balance': user_balance,
+                'portfolio_data': portfolio_data,
+            })
 
-    return redirect('home')
+    return render(request, 'home.html', {
+        'graph_html': graph_html,
+        'stock_symbol': stock_symbol,
+        'error_message': error_message if 'error_message' in locals() else None,
+        'user_balance': user_balance,
+        'portfolio_data': portfolio_data, 
+    })
 @login_required
 def trade_history(request):
     transactions = Transaction.objects.filter(user=request.user).order_by('-id')
