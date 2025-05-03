@@ -40,19 +40,13 @@ def get_stock_price(symbol):
 
             cache.set(cache_key, price, timeout=60)
 
-        except Exception as e:
-            print(f"Error fetching price for {symbol}: {e}")
-            
-            try:
-                _, _, fake_price = generate_fake_data(symbol)
-                price = fake_price
-                cache.set(cache_key, price, timeout=60)
-            except Exception as fallback_error:
-                print(f"Error generating fake price for {symbol}: {fallback_error}")
-                raise ValueError(f"Could not retrieve price for {symbol}. Please try again later.")
+        except Exception:
+            fake_price = cache.get(f"fake_price_{symbol}")
+            if fake_price is not None:
+                return fake_price
+            raise ValueError(f"Could not retrieve price for {symbol}. Please try again later.")
     
     return price
-
 
 def handle_buy(user, symbol, shares, price):
     price = Decimal(str(price)) 
