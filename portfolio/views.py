@@ -82,27 +82,45 @@ def home(request):
 
     portfolio_data = []
     for item in portfolio:
-        current_price = get_stock_price(item.stock_symbol)
-        total_value = item.shares * current_price
-        total_cost = item.shares * item.average_price
-        gain_loss = total_value - total_cost
-        gain_loss_percent = (gain_loss / total_cost * 100) if total_cost > 0 else 0
+        try:
+            current_price = get_stock_price(item.stock_symbol)
+            total_value = item.shares * current_price
+            total_cost = item.shares * item.average_price
+            gain_loss = total_value - total_cost
+            gain_loss_percent = (gain_loss / total_cost * 100) if total_cost > 0 else 0
 
-        portfolio_data.append({
-            'symbol': item.stock_symbol,
-            'shares': item.shares,
-            'avg_price': item.average_price,
-            'current_price': round(current_price, 2),
-            'total_value': round(total_value, 2),
-            'gain_loss': round(gain_loss, 2),
-            'gain_loss_percent': round(gain_loss_percent, 2)
-        })
+            portfolio_data.append({
+                'symbol': item.stock_symbol,
+                'shares': item.shares,
+                'avg_price': item.average_price,
+                'current_price': round(current_price, 2),
+                'total_value': round(total_value, 2),
+                'gain_loss': round(gain_loss, 2),
+                'gain_loss_percent': round(gain_loss_percent, 2)
+            })
+        except ValueError as e:
+            # Log the error for missing price and continue
+            print(f"Error fetching price for {item.stock_symbol}: {e}")
+            portfolio_data.append({
+                'symbol': item.stock_symbol,
+                'error': str(e)
+            })
 
     if request.method == 'POST':
         action = request.POST.get('action')
         symbol = request.POST.get('symbol').upper()
         shares = int(request.POST.get('shares'))
-        price = get_stock_price(symbol)
+        try:
+            price = get_stock_price(symbol)
+        except ValueError as e:
+            error_message = str(e)
+            return render(request, 'home.html', {
+                'graph_html': graph_html,
+                'stock_symbol': stock_symbol,
+                'error_message': error_message,
+                'user_balance': user_balance,
+                'portfolio_data': portfolio_data,
+            })
 
         success = False
         if action == 'BUY':
@@ -127,7 +145,6 @@ def home(request):
         'user_balance': user_balance,
         'portfolio_data': portfolio_data,
     })
-
 @login_required
 def trade_history(request):
     transactions = Transaction.objects.filter(user=request.user).order_by('-id')
