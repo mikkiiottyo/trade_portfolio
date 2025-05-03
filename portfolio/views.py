@@ -62,8 +62,11 @@ def home(request):
     else:
         try:
             stock = yf.Ticker(stock_symbol.upper()) 
-            data = stock.history(period="1mo") 
+            data = stock.history(period="1mo")
 
+            if data.empty:
+                raise ValueError(f"Invalid stock symbol: {stock_symbol}")
+            
             dates = data.index.strftime('%Y-%m-%d').tolist()  
             closes = data['Close'].tolist()  
             stock_symbol = stock_symbol.upper()  
@@ -168,15 +171,35 @@ def handle_sell(request, symbol, shares, price):
         return render(request, 'home.html', {'error': 'You do not own this stock.'})
 
 def get_stock_price(symbol):
+    symbol = symbol.lower()
     cache_key = f"stock_price_{symbol}"
     price = cache.get(cache_key)
 
     if price is None:
         try:
-            stock = yf.Ticker(symbol)
-            price = stock.history(period="1d")['Close'].iloc[-1]
+            if symbol in ['bitcoin', 'btc', 'ethereum', 'eth', 'ripple', 'xrp']:
+                cg = CoinGeckoAPI()
+                crypto_ids = {
+                    'btc': 'bitcoin',
+                    'bitcoin': 'bitcoin',
+                    'eth': 'ethereum',
+                    'ethereum': 'ethereum',
+                    'xrp': 'ripple',
+                    'ripple': 'ripple'
+                }
+                coin_id = crypto_ids.get(symbol, symbol)
+                crypto_data = cg.get_price(ids=coin_id, vs_currencies='usd')
+                price = crypto_data[coin_id]['usd']
+            else:
+                stock = yf.Ticker(symbol.upper())
+                hist = stock.history(period="1d")
+                if hist.empty:
+                    raise Exception("No data returned from yfinance.")
+                price = hist['Close'].iloc[-1]
+            
             cache.set(cache_key, price, timeout=60)
         except Exception as e:
+            print(f"Error fetching price for {symbol}: {e}")
             raise Exception("Could not retrieve stock price. Try again soon.")
 
     return price
