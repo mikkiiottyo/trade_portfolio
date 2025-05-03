@@ -122,19 +122,24 @@ def handle_buy(request, symbol, shares, price):
     if user_balance.balance >= total_cost:
         user_balance.balance -= total_cost
         user_balance.save()
+
         portfolio_item, created = Portfolio.objects.get_or_create(
             user=request.user, stock_symbol=symbol,
             defaults={'shares': 0, 'average_price': 0}
         )
+
         if created:
             portfolio_item.shares = shares
             portfolio_item.average_price = price
         else:
             total_shares = portfolio_item.shares + shares
-            portfolio_item.average_price = ((portfolio_item.shares * portfolio_item.average_price) + (shares * price)) / total_shares
+            portfolio_item.average_price = (
+                (portfolio_item.shares * portfolio_item.average_price) + (shares * price)
+            ) / total_shares
             portfolio_item.shares = total_shares
 
         portfolio_item.save()
+
         Transaction.objects.create(
             user=request.user,
             stock_symbol=symbol,
@@ -142,8 +147,9 @@ def handle_buy(request, symbol, shares, price):
             price_per_share=price,
             action='BUY'
         )
+        return True
     else:
-        return render(request, 'home.html', {'error': 'Not enough balance to buy.'})
+        return False
 
 def handle_sell(request, symbol, shares, price):
     try:
