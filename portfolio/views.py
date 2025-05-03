@@ -164,6 +164,7 @@ def handle_sell(request, symbol, shares, price):
                 portfolio_item.delete()
             else:
                 portfolio_item.save()
+
             Transaction.objects.create(
                 user=request.user,
                 stock_symbol=symbol,
@@ -171,10 +172,11 @@ def handle_sell(request, symbol, shares, price):
                 price_per_share=price,
                 action='SELL'
             )
+            return True
         else:
-            return render(request, 'home.html', {'error': 'Not enough shares to sell.'})
+            return False
     except Portfolio.DoesNotExist:
-        return render(request, 'home.html', {'error': 'You do not own this stock.'})
+        return False
 
 def get_stock_price(symbol):
     symbol = symbol.lower()
