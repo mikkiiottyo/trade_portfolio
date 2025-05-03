@@ -13,7 +13,7 @@ def generate_fake_data(stock_symbol):
 
     cache.set(f"fake_price_{stock_symbol.lower()}", latest_price, timeout=60)
 
-    return dates, closes, latest_price
+    return dates, closes, stock_symbol
 
 def get_coin_ids():
     coin_ids = cache.get("coin_ids")
