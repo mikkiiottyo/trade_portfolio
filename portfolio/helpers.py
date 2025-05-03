@@ -5,9 +5,12 @@ from pycoingecko import CoinGeckoAPI
 
 
 def generate_fake_data(stock_symbol):
-    dates = [(datetime.today() - timedelta(days=i)).strftime('%Y-%m-%d') for i in range(30)]
-    closes = [random.uniform(100, 200) for _ in range(30)]
-    return dates, closes
+    today = datetime.today()
+    dates = [(today - timedelta(days=i)).strftime('%Y-%m-%d') for i in range(30)][::-1]
+    base_price = random.uniform(10, 500)
+    closes = [round(base_price + random.uniform(-5, 5) * (i / 10), 2) for i in range(30)]
+    latest_price = closes[-1]
+    return dates, closes, latest_price
 
 
 def get_coin_ids():

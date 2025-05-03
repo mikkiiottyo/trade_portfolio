@@ -2,7 +2,7 @@ from pycoingecko import CoinGeckoAPI
 import yfinance as yf
 from django.core.cache import cache
 from .models import UserBalance, Portfolio, Transaction
-from .helpers import is_crypto
+from .helpers import is_crypto,generate_fake_data, get_coin_ids
 from decimal import Decimal
 
 def get_stock_price(symbol):
@@ -24,23 +24,32 @@ def get_stock_price(symbol):
                 }
                 coin_id = crypto_ids.get(symbol, symbol)
                 crypto_data = cg.get_price(ids=coin_id, vs_currencies='usd')
-                
+
                 if coin_id not in crypto_data:
                     raise ValueError(f"Could not fetch price for {symbol}.")
                 price = crypto_data[coin_id]['usd']
+            
             else:
                 stock = yf.Ticker(symbol.upper())
                 hist = stock.history(period="1d")
-                
+
                 if hist.empty:
                     raise ValueError(f"No data returned for {symbol} from Yahoo Finance.")
-                
+
                 price = hist['Close'].iloc[-1]
-            
+
             cache.set(cache_key, price, timeout=60)
+
         except Exception as e:
             print(f"Error fetching price for {symbol}: {e}")
-            raise ValueError(f"Could not retrieve price for {symbol}. Please try again later.")
+            
+            try:
+                _, _, fake_price = generate_fake_data(symbol)
+                price = fake_price
+                cache.set(cache_key, price, timeout=60)
+            except Exception as fallback_error:
+                print(f"Error generating fake price for {symbol}: {fallback_error}")
+                raise ValueError(f"Could not retrieve price for {symbol}. Please try again later.")
     
     return price
 
