@@ -28,33 +28,43 @@ def signup(request):
 
 @login_required
 def home(request):
-    stock_symbol = request.GET.get('stock_symbol', 'AAPL').strip().lower()
-    error_message = None
-    dates, closes, stock_symbol = [], [], None
+  
+    stock_symbol = request.GET.get('stock_symbol', 'AAPL').strip()
+    
+    if not isinstance(stock_symbol, str):
+        stock_symbol = 'AAPL'  
 
-    if stock_symbol not in ['aapl', 'msft', 'goog']:
+    if not stock_symbol.isalpha():
+        stock_symbol = 'AAPL'  
+
+    error_message = None
+    dates, closes = [], []
+
+    valid_stocks = ['aapl', 'msft', 'goog']
+    if stock_symbol.lower() not in valid_stocks:
         try:
             coin_ids = get_coin_ids()
-            if stock_symbol in coin_ids:
+            if stock_symbol.lower() in coin_ids:
                 current_timestamp = int(time.time())
                 one_year_ago_timestamp = current_timestamp - (365 * 24 * 60 * 60)
 
                 cg = CoinGeckoAPI()
                 data = cg.get_coin_market_chart_range_by_id(
-                    id=stock_symbol, vs_currency='usd',
+                    id=stock_symbol.lower(), vs_currency='usd',
                     from_timestamp=one_year_ago_timestamp, to_timestamp=current_timestamp
                 )
 
                 dates = [datetime.fromtimestamp(d[0] / 1000, tz=timezone.utc).strftime('%Y-%m-%d') for d in data['prices']]
                 closes = [d[1] for d in data['prices']]
                 stock_symbol = stock_symbol.capitalize()
-            else:
+            else:  
                 dates, closes, stock_symbol = generate_fake_data(stock_symbol)
                 stock_symbol = stock_symbol.capitalize()
         except Exception as e:
             error_message = str(e)
-            dates, closes, stock_symbol = [], [], "Invalid Search"
-    else:
+            dates, closes, stock_symbol = generate_fake_data(stock_symbol)
+            stock_symbol = stock_symbol.capitalize()
+    else:  
         try:
             stock = yf.Ticker(stock_symbol.upper())
             data = stock.history(period="1mo")

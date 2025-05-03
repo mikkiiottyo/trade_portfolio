@@ -4,14 +4,14 @@ from django.core.cache import cache
 from pycoingecko import CoinGeckoAPI
 
 
-def generate_fake_data(symbol):
+def generate_fake_data(stock_symbol):
     today = datetime.today()
     dates = [(today - timedelta(days=i)).strftime('%Y-%m-%d') for i in range(30)][::-1]
     base_price = random.uniform(10, 500)
     closes = [round(base_price + random.uniform(-5, 5) * (i / 10), 2) for i in range(30)]
     latest_price = closes[-1]
 
-    cache.set(f"fake_price_{symbol.lower()}", latest_price, timeout=60)
+    cache.set(f"fake_price_{stock_symbol.lower()}", latest_price, timeout=60)
 
     return dates, closes, latest_price
 
