@@ -85,12 +85,29 @@ def home(request):
     if not dates or not closes:
         return render(request, 'home.html', {
             'error_message': "No data available for the given stock."
-        })
+    })
 
-    fig = px.line(x=dates,
-                    y=closes,
-                    labels={'x': 'Date', 'y': 'Price (USD)'},
-                    title=f"{stock_symbol} Data")
+    fig = px.line(
+        x=dates,
+        y=closes,
+        labels={'x': 'Date', 'y': 'Price (USD)'},
+        title=f"{stock_symbol} Price History"
+    )
+    fig.update_traces(
+        line=dict(color='green', width=3),
+        hovertemplate='Date: %{x}<br>Price: $%{y:.2f}<extra></extra>',
+        mode='lines+markers'
+    )
+
+    fig.update_layout(
+        title_font_size=24,
+        xaxis_title='Date',
+        yaxis_title='Price (USD)',
+        font=dict(size=14),
+        plot_bgcolor='white',
+        hoverlabel=dict(bgcolor='black', font_size=14, font_family='Arial'),
+    )
+
     graph_html = fig.to_html(full_html=False)
 
     user_balance = 0
