@@ -115,13 +115,6 @@
                     selectedActionDisplay.textContent = `Selected Action: ${action}`;    
                 });
             });
-    
-            document.querySelector('form').addEventListener('submit', function (e) {
-                if (!actionInput.value) {
-                    e.preventDefault();
-                    alert('Please select a trade action: Buy, Sell, or Trade.');
-                }
-            });
         });
     </script>
 {% else %}
