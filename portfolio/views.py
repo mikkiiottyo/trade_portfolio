@@ -84,7 +84,7 @@ def home(request):
 
     if not dates or not closes:
         return render(request, 'home.html', {
-            'error_message': "No data available for the given symbol."
+            'error_message': "No data available for the given stock."
         })
 
     fig = px.line(x=dates, y=closes, labels={'x': 'Date', 'y': 'Price (USD)'}, title=f"{stock_symbol} Data")
