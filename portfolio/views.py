@@ -2,14 +2,14 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
-from .forms import TradeForm
+from django.core.cache import cache
 from .models import UserBalance, Portfolio, Transaction
-from .helpers import generate_fake_data, get_coin_ids, is_crypto
+from .helpers import generate_fake_data, get_coin_ids
 from .services import get_stock_price, handle_buy, handle_sell
 from pycoingecko import CoinGeckoAPI
 import yfinance as yf
 import plotly.express as px
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 import time
 from decimal import Decimal
 
@@ -48,10 +48,15 @@ def home(request):
                 one_year_ago_timestamp = current_timestamp - (365 * 24 * 60 * 60)
 
                 cg = CoinGeckoAPI()
-                data = cg.get_coin_market_chart_range_by_id(
-                    id=stock_symbol.lower(), vs_currency='usd',
-                    from_timestamp=one_year_ago_timestamp, to_timestamp=current_timestamp
-                )
+                cg_key = f"coingecko_data_{stock_symbol.lower()}"
+                data = cache.get(cg_key)
+
+                if data is None:
+                    data = cg.get_coin_market_chart_range_by_id(
+                        id=stock_symbol.lower(), vs_currency='usd',
+                        from_timestamp=one_year_ago_timestamp, to_timestamp=current_timestamp
+                    )
+                    cache.set(cg_key, data, timeout=300) 
 
                 dates = [datetime.fromtimestamp(d[0] / 1000, tz=timezone.utc).strftime('%Y-%m-%d') for d in data['prices']]
                 closes = [d[1] for d in data['prices']]
