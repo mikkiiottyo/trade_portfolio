@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 import time
 from decimal import Decimal
 
+
 def signup(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -29,12 +30,9 @@ def signup(request):
 @login_required
 def home(request):
     stock_symbol = request.GET.get('stock_symbol', 'Bitcoin').strip()
-    
-    if not isinstance(stock_symbol, str):
-        stock_symbol = 'Bitcoin'  
 
-    if not stock_symbol.isalpha():
-        stock_symbol = 'Bitcoin' 
+    if not isinstance(stock_symbol, str) or not stock_symbol.isalpha():
+        stock_symbol = 'Bitcoin'
 
     error_message = None
     dates, closes = [], []
@@ -43,7 +41,7 @@ def home(request):
     if stock_symbol.lower() not in valid_stocks:
         try:
             coin_ids = get_coin_ids()
-            if stock_symbol.lower() in coin_ids: 
+            if stock_symbol.lower() in coin_ids:
                 current_timestamp = int(time.time())
                 one_year_ago_timestamp = current_timestamp - (365 * 24 * 60 * 60)
 
@@ -56,19 +54,19 @@ def home(request):
                         id=stock_symbol.lower(), vs_currency='usd',
                         from_timestamp=one_year_ago_timestamp, to_timestamp=current_timestamp
                     )
-                    cache.set(cg_key, data, timeout=300) 
+                    cache.set(cg_key, data, timeout=300)
 
                 dates = [datetime.fromtimestamp(d[0] / 1000, tz=timezone.utc).strftime('%Y-%m-%d') for d in data['prices']]
                 closes = [d[1] for d in data['prices']]
-                stock_symbol = stock_symbol.lower().capitalize()  
-            else: 
+                stock_symbol = stock_symbol.lower().capitalize()
+            else:
                 dates, closes, stock_symbol = generate_fake_data(stock_symbol)
-                stock_symbol = str(stock_symbol).capitalize()  
+                stock_symbol = str(stock_symbol).capitalize()
         except Exception as e:
             error_message = str(e)
             dates, closes, stock_symbol = generate_fake_data(stock_symbol)
-            stock_symbol = str(stock_symbol).capitalize() 
-    else: 
+            stock_symbol = str(stock_symbol).capitalize()
+    else:
         try:
             stock = yf.Ticker(stock_symbol.upper())
             data = stock.history(period="1mo")
@@ -80,12 +78,12 @@ def home(request):
         except Exception as e:
             error_message = str(e)
             dates, closes, stock_symbol = generate_fake_data(stock_symbol)
-            stock_symbol = str(stock_symbol).capitalize() 
+            stock_symbol = str(stock_symbol).capitalize()
 
     if not dates or not closes:
         return render(request, 'home.html', {
             'error_message': "No data available for the given stock."
-    })
+        })
 
     fig = px.line(
         x=dates,
@@ -98,7 +96,6 @@ def home(request):
         hovertemplate='Date: %{x}<br>Price: $%{y:.2f}<extra></extra>',
         mode='lines+markers'
     )
-
     fig.update_layout(
         title_font_size=24,
         xaxis_title='Date',
@@ -110,15 +107,14 @@ def home(request):
 
     graph_html = fig.to_html(full_html=False)
 
-    user_balance = 0
     try:
         user_balance = UserBalance.objects.get(user=request.user).balance
     except UserBalance.DoesNotExist:
-        pass
+        user_balance = 0
 
     portfolio = Portfolio.objects.filter(user=request.user)
-
     portfolio_data = []
+
     for item in portfolio:
         try:
             current_price = Decimal(str(get_stock_price(item.stock_symbol)))
@@ -143,41 +139,30 @@ def home(request):
                 'error': str(e)
             })
 
-    if request.method == 'POST' and 'action' in request.POST:
+    if request.method == 'POST':
         action = request.POST.get('action')
-        symbol = request.POST.get('symbol', '').upper()
-    
-    if not action or not symbol or not request.POST.get('shares'):
-        error_message = "Please select a trade action: Buy, Sell, and fill in all fields."
-        return render(request, 'home.html', {
-            'graph_html': graph_html,
-            'stock_symbol': stock_symbol,
-            'error_message': error_message,
-            'user_balance': user_balance,
-            'portfolio_data': portfolio_data,
-        })
+        symbol = request.POST.get('symbol', '').strip().upper()
+        shares_str = request.POST.get('shares', '').strip()
 
-    try:
-        shares = int(request.POST.get('shares'))
-        price = get_stock_price(symbol)
-    except (ValueError, TypeError) as e:
-        error_message = str(e)
-        return render(request, 'home.html', {
-            'graph_html': graph_html,
-            'stock_symbol': stock_symbol,
-            'error_message': error_message,
-            'user_balance': user_balance,
-            'portfolio_data': portfolio_data,
-        })
+        if not action or not symbol or not shares_str or not shares_str.isdigit():
+            error_message = "Please fill out all fields with valid data."
+        else:
+            shares = int(shares_str)
+            try:
+                price = get_stock_price(symbol)
+                success = False
 
-    success = False
-    if action == 'BUY':
-        success = handle_buy(request.user, symbol, shares, price)
-    elif action == 'SELL':
-        success = handle_sell(request.user, symbol, shares, price)
+                if action == 'BUY':
+                    success = handle_buy(request.user, symbol, shares, price)
+                elif action == 'SELL':
+                    success = handle_sell(request.user, symbol, shares, price)
 
-    if not success:
-        error_message = "Transaction failed. Check your balance or available shares."
+                if not success:
+                    error_message = "Transaction failed. Check your balance or available shares."
+
+            except (ValueError, TypeError) as e:
+                error_message = str(e)
+
         return render(request, 'home.html', {
             'graph_html': graph_html,
             'stock_symbol': stock_symbol,
@@ -193,6 +178,7 @@ def home(request):
         'user_balance': user_balance,
         'portfolio_data': portfolio_data,
     })
+
 
 @login_required
 def trade_history(request):
