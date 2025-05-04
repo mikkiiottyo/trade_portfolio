@@ -28,13 +28,13 @@ def signup(request):
 
 @login_required
 def home(request):
-    stock_symbol = request.GET.get('stock_symbol', 'AAPL').strip()
+    stock_symbol = request.GET.get('stock_symbol', 'Bitcoin').strip()
     
     if not isinstance(stock_symbol, str):
-        stock_symbol = 'AAPL'  
+        stock_symbol = 'Bitcoin'  
 
     if not stock_symbol.isalpha():
-        stock_symbol = 'AAPL' 
+        stock_symbol = 'Bitcoin' 
 
     error_message = None
     dates, closes = [], []
