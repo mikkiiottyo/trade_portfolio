@@ -88,9 +88,9 @@ def home(request):
         })
 
     fig = px.line(x=dates,
-                   y=closes,
-                     labels={'x': 'Date', 'y': 'Price (USD)'},
-                       title=f"{stock_symbol} Data")
+                    y=closes,
+                    labels={'x': 'Date', 'y': 'Price (USD)'},
+                    title=f"{stock_symbol} Data")
     graph_html = fig.to_html(full_html=False)
 
     user_balance = 0
