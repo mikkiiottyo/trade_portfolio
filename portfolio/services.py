@@ -2,7 +2,7 @@ from pycoingecko import CoinGeckoAPI
 import yfinance as yf
 from django.core.cache import cache
 from .models import UserBalance, Portfolio, Transaction
-from .helpers import is_crypto,generate_fake_data, get_coin_ids
+from .helpers import is_crypto
 from decimal import Decimal
 
 def get_stock_price(symbol):
