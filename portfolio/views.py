@@ -143,37 +143,48 @@ def home(request):
                 'error': str(e)
             })
 
-    if request.method == 'POST':
+    if request.method == 'POST' and 'action' in request.POST:
         action = request.POST.get('action')
-        symbol = request.POST.get('symbol').upper()
+        symbol = request.POST.get('symbol', '').upper()
+    
+    if not action or not symbol or not request.POST.get('shares'):
+        error_message = "Please select a trade action: Buy, Sell, and fill in all fields."
+        return render(request, 'home.html', {
+            'graph_html': graph_html,
+            'stock_symbol': stock_symbol,
+            'error_message': error_message,
+            'user_balance': user_balance,
+            'portfolio_data': portfolio_data,
+        })
+
+    try:
         shares = int(request.POST.get('shares'))
-        try:
-            price = get_stock_price(symbol)
-        except ValueError as e:
-            error_message = str(e)
-            return render(request, 'home.html', {
-                'graph_html': graph_html,
-                'stock_symbol': stock_symbol,
-                'error_message': error_message,
-                'user_balance': user_balance,
-                'portfolio_data': portfolio_data,
-            })
+        price = get_stock_price(symbol)
+    except (ValueError, TypeError) as e:
+        error_message = str(e)
+        return render(request, 'home.html', {
+            'graph_html': graph_html,
+            'stock_symbol': stock_symbol,
+            'error_message': error_message,
+            'user_balance': user_balance,
+            'portfolio_data': portfolio_data,
+        })
 
-        success = False
-        if action == 'BUY':
-            success = handle_buy(request.user, symbol, shares, price)
-        elif action == 'SELL':
-            success = handle_sell(request.user, symbol, shares, price)
+    success = False
+    if action == 'BUY':
+        success = handle_buy(request.user, symbol, shares, price)
+    elif action == 'SELL':
+        success = handle_sell(request.user, symbol, shares, price)
 
-        if not success:
-            error_message = "Transaction failed. Check your balance or available shares."
-            return render(request, 'home.html', {
-                'graph_html': graph_html,
-                'stock_symbol': stock_symbol,
-                'error_message': error_message,
-                'user_balance': user_balance,
-                'portfolio_data': portfolio_data,
-            })
+    if not success:
+        error_message = "Transaction failed. Check your balance or available shares."
+        return render(request, 'home.html', {
+            'graph_html': graph_html,
+            'stock_symbol': stock_symbol,
+            'error_message': error_message,
+            'user_balance': user_balance,
+            'portfolio_data': portfolio_data,
+        })
 
     return render(request, 'home.html', {
         'graph_html': graph_html,
