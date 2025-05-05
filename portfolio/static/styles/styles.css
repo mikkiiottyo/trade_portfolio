@@ -15,7 +15,6 @@ body {
 
 .btn, button {
     background-color: #00c27e;
-    color: #ffffff;
     border: none;
     border-radius: 6px;
     padding: 6px 12px;
@@ -23,7 +22,6 @@ body {
 
 .btn:hover, button:hover {
     background-color: #00a96c;
-    color: #ffffff;
 }
 
 
