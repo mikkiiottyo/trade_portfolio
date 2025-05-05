@@ -73,8 +73,8 @@
         <input type="hidden" name="symbol" value="{{ stock_symbol }}">
 
         <div class="mb-3">
-            <label for="sharesInput" class="form-label">Number of Shares</label>
-            <input type="number" name="shares" id="sharesInput" class="form-control" min="1" required>
+            <label for="sharesInput" class="form-label">Dollar Amount to Invest</label>
+            <input type="number" name="amount" id="amountInput" class="form-control" min=".01" step=".01" required>
         </div>
 
         <input type="hidden" name="action" id="actionInput">
