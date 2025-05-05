@@ -14,7 +14,7 @@
     </tr>
     {% for t in transactions %}
     <tr>
-        <td>{{ t.timestamp }}</td>
+        <td>{{ t.date|date:"Y-m-d H:i" }}</td>
         <td>{{ t.action }}</td>
         <td>{{ t.stock_symbol }}</td>
         <td>{{ t.shares }}</td>
