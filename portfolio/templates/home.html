@@ -10,7 +10,7 @@
 {% endif %}
 
 {% if stock_symbol and 'Invalid Search' not in stock_symbol %}
-    <div>
+    <div class="chart-container">
         {{ graph_html|safe }}
     </div>
 {% else %}
@@ -30,6 +30,7 @@
 
 {% if user.is_authenticated %}
 <p><strong>Your Balance:</strong> ${{ user_balance }}</p>
+<div class="portfolio-container">
 <h2>Your Portfolio</h2>
 
 {% if portfolio_data %}
@@ -63,6 +64,7 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 {% else %}
 <p>You currently have no stocks in your portfolio.</p>
 {% endif %}
