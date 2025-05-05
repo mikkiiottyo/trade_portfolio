@@ -148,7 +148,7 @@ def home(request):
             error_message = "Please fill out all fields with valid data."
         else:
             try:
-                amount = int(amount_str)
+                amount = Decimal(amount_str)
                 if amount <= 0:
                     raise ValueError("amount must be greater than zero.")
                 
