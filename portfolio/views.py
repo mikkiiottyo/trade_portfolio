@@ -14,6 +14,15 @@ import time
 from decimal import Decimal
 
 
+
+
+def about(request):
+    return render(request, 'about.html')
+
+def contact(request):
+    return render(request, 'contact.html')
+
+
 def signup(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
