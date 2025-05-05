@@ -142,16 +142,20 @@ def home(request):
     if request.method == 'POST':
         action = request.POST.get('action')
         symbol = request.POST.get('symbol', '').strip().upper()
-        shares_str = request.POST.get('shares', '').strip()
+        amount_str = request.POST.get("amount")
 
-        if not action or not symbol or not shares_str or not shares_str.isdigit():
+        if not action or not symbol or not amount_str:
             error_message = "Please fill out all fields with valid data."
         else:
-            shares = int(shares_str)
             try:
+                amount = int(amount_str)
+                if amount <= 0:
+                    raise ValueError("amount must be greater than zero.")
+                
                 price = get_stock_price(symbol)
-                success = False
+                shares = amount / price
 
+                success = False
                 if action == 'BUY':
                     success = handle_buy(request.user, symbol, shares, price)
                 elif action == 'SELL':
