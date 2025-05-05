@@ -9,10 +9,6 @@ body {
     border-bottom: 1px solid #1e4b3a;
 }
 
-.navbar .nav-link {
-    color: #c9fdd7;
-    font-weight: 500;
-}
 .navbar .nav-link:hover {
     color: #66ffb3 !important;
 }
